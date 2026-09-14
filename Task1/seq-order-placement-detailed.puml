@@ -16,7 +16,7 @@ ShoppingCartService --> buyer : Состав заказа (товары, кол�
 buyer -> ShoppingCartService : Подтвердить состав, указать адрес и способ доставки,\n выбрать способ оплаты
 ShoppingCartService -> StockService : Проверить доступность товаров в нужном количестве
 ShoppingCartService -> StockService : Зарезервировать доступные товары на складе
-StockService -> OrderService : Команда "Создать заказ"
+ShoppingCartService -> OrderService : Команда "Создать заказ"
 OrderService -> OrderService : Создать заказ в состоянии "Ожидание оплаты"
 OrderService -> PaymentService : Перенаправить пользователя на страницу оплаты
 buyer -> PaymentService : Ввести данные карты и подтвердить платёж
