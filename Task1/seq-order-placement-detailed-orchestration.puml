@@ -1,0 +1,42 @@
+@startuml
+title UC-02 · Оформление заказа — SAGA оркестрация (диаграмма последовательности)
+
+note over OrderService : Order Service — центральный оркестратор (SAGA coordinator);\nСценарий показывает успешный случай (happy path),\nошибки и компенсации моделируются отдельно;\nСобытия передаются через шину событий (Kafka).
+
+actor "Покупатель" as buyer
+participant "Shopping Cart Service" as ShoppingCartService
+participant "Order Service" as OrderService
+participant "Stock Service" as StockService
+participant "Payment Service" as PaymentService
+participant "Delivery Service" as DeliveryService
+participant "Notification Service" as NotificationService
+actor "Продавец" as seller
+
+buyer -> ShoppingCartService : Открыть корзину и нажать «Оформить заказ»
+ShoppingCartService --> buyer : Состав заказа (товары, количество, цены, итоговая сумма)
+
+buyer -> ShoppingCartService : Подтвердить состав, указать адрес и способ доставки,\n выбрать способ оплаты
+ShoppingCartService -> OrderService : Команда «Создать заказ»\n(состав, адрес, способ доставки, способ оплаты)
+
+OrderService -> StockService : Проверить и зарезервировать товары в нужном количестве
+StockService --> OrderService : Ответ «Товары зарезервированы»
+
+OrderService -> OrderService : Создать заказ в состоянии «Ожидание оплаты»
+OrderService -> PaymentService : Инициировать оплату
+
+buyer -> PaymentService : Ввести данные карты и подтвердить платёж
+PaymentService -> PaymentService : Списать средства
+PaymentService --> OrderService : Уведомление об успешном списании средств
+
+OrderService -> OrderService : Перевести заказ к этапу подготовки к доставке
+OrderService -> DeliveryService : Заявка на доставку (адрес, получатель, список товаров)
+DeliveryService --> OrderService : Подтверждение приёма заявки\n(статус заказа «Передан в доставку»)
+
+OrderService -> NotificationService : Уведомить продавца о подготовке товара к отправке
+NotificationService -> seller : Уведомление о подготовке товара к отправке
+seller --> OrderService : Подтверждение получения уведомления, продавец принял заказ и готовит к отправке
+
+OrderService -> NotificationService : Уведомить покупателя об успешном оформлении заказа
+NotificationService -> buyer : Уведомление об успешном оформлении заказа
+
+@enduml
