@@ -17,7 +17,8 @@ System_Ext(logisticsCompanies, "Логистические компании", "�
 System_Boundary(backend_system, "Backend NovaMarket") {
   Container(apiGateway, "API Gateway", "Nginx", "")
 
-  Container(shoppingCartService, "Stock Service", "", "")
+  Container(shoppingCartService, "Shopping Cart Service", "", "")
+  Container(stockService, "Stock Service", "", "")
   Container(orderService, "Order Service", "", "")
   Container(paymentService, "Payment Service", "", "")
   Container(deliveryService, "Delivery Service", "", "")
@@ -49,5 +50,13 @@ Rel(notificationService, sellerMobileApp, "ServerPush/WebSocke")
 Rel(paymentService, paymentGateways, "")
 Rel(logisticsCompanies, deliveryService, "")
 Rel(notificationService, logisticsCompanies, "")
+
+'Хореография: все микросервисы обмениваются событиями через Event Bus (Kafka)
+BiRel(shoppingCartService, kafka, "publish/subscribe события")
+BiRel(stockService, kafka, "publish/subscribe события")
+BiRel(orderService, kafka, "publish/subscribe события")
+BiRel(paymentService, kafka, "publish/subscribe события")
+BiRel(deliveryService, kafka, "publish/subscribe события")
+BiRel(notificationService, kafka, "publish/subscribe события")
 
 @enduml
