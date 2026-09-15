@@ -14,11 +14,11 @@
 
 **SAGA-хореография** — сервисы обмениваются событиями через шину событий (Kafka), без центрального координатора:
 
-![SAGA-хореография](seq-order-placement-detailed-choreography.png)
+![SAGA-хореография](seq-order-placement-choreography.png)
 
 **SAGA-оркестрация** — Order Service выступает центральным координатором и явно вызывает остальные сервисы:
 
-![SAGA-оркестрация](seq-order-placement-detailed-orchestration.png)
+![SAGA-оркестрация](seq-order-placement-orchestration.png)
 
 ---
 

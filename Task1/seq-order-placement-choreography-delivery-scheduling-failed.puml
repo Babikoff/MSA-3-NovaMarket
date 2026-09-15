@@ -1,7 +1,7 @@
 @startuml
 title UC-02 · Оформление заказа — SAGA хореография (диаграмма последовательности)
 
-note over ShoppingCartService : Сценарий показывает успешный случай (happy path);\nошибки и компенсации моделируются отдельно;\nСобытия передаются через шину событий (Kafka).
+note over ShoppingCartService : Сценарий обработки ошибки регистрации доставки / передачи в службу доставки.
 
 actor "Покупатель" as buyer
 participant "Shopping Cart Service" as ShoppingCartService
@@ -10,7 +10,6 @@ participant "Order Service" as OrderService
 participant "Payment Service" as PaymentService
 participant "Delivery Service" as DeliveryService
 participant "Notification Service" as NotificationService
-actor "Продавец" as seller
 
 buyer -> ShoppingCartService : Открыть корзину и нажать «Оформить заказ»
 ShoppingCartService --> buyer : Состав заказа (товары, количество, цены, итоговая сумма)
@@ -18,7 +17,6 @@ ShoppingCartService --> buyer : Состав заказа (товары, кол�
 buyer -> ShoppingCartService : Подтвердить состав, указать адрес и способ доставки,\n выбрать способ оплаты
 
 ShoppingCartService ->> StockService : Событие «CartConfirmed»
-ShoppingCartService ->> OrderService : Событие «CartConfirmed»
 
 StockService -> StockService : Проверить и зарезервировать товары на складе
 StockService ->> OrderService : Событие «StockReserved»
@@ -32,13 +30,14 @@ PaymentService -> PaymentService : Списать средства
 PaymentService ->> OrderService : Событие «PaymentSucceeded»
 PaymentService ->> DeliveryService : Событие «PaymentSucceeded»
 
-DeliveryService -> DeliveryService : Сформировать заявку на доставку\n(статус заказа «Передан в доставку»)
-DeliveryService ->> NotificationService : Событие «DeliveryScheduled»
+DeliveryService -> DeliveryService : Не удалось сформировать заявку на доставку
+DeliveryService ->> PaymentService : Команда «CancelPayment»
 
-NotificationService -> seller : Уведомление о подготовке товара к отправке
-seller --> OrderService : Подтверждение получения уведомления, продавец принял заказ и готовит к отправке
+PaymentService ->> OrderService : Событие «PaymentCanceled»
+OrderService -> OrderService : Отменить заказ
+OrderService ->> StockService : Команда «CancelReservation»
 
-OrderService -> NotificationService : Уведомить покупателя об успешном оформлении заказа
-NotificationService -> buyer : Уведомление об успешном оформлении заказа
+ShoppingCartService ->> NotificationService : Событие «OrderAutomaticallyCanceled»
+NotificationService ->> buyer : Уведомление: 
 
 @enduml
