@@ -13,7 +13,7 @@
 
 ## События при оформлении заказа ##
 
-Реестр построен по выбранному паттерну **SAGA-хореография** (см. [ADR-02](ADR-02-SAGA-pattern-choice.md)); именование событий согласовано с [seq-order-placement-detailed-choreography.puml](seq-order-placement-detailed-choreography.puml). Диаграммы показывают happy path, поэтому события ошибок и компенсации моделируются отдельно и включаются в реестр дополнительно.
+Реестр построен по выбранному паттерну **SAGA-хореография** (см. [ADR-02](ADR-02-SAGA-pattern-choice.md)); именование событий согласовано с [seq-order-placement-choreography-happy-path.puml](seq-order-placement-choreography-happy-path.puml), [seq-order-placement-choreography-payment-failed.puml](seq-order-placement-choreography-payment-failed.puml) и [seq-order-placement-choreography-delivery-scheduling-failed.puml](seq-order-placement-choreography-delivery-scheduling-failed.puml). 
 
 | Этап                               | Тип события  | Название                                 |
 |:-----------------------------------|:------------:|-----------------------------------------:|
@@ -23,7 +23,7 @@
 | Резервирование товаров не успешно  |   failure    | StockReservationFailed                   |
 | Списание средств успешно           |    domain    | PaymentSucceeded                         |
 | Списание средств не успешно        |   failure    | PaymentFailed                            |
-| Оплата отменена        |   domain    | PaymentCancelled                            |
+| Оплата отменена        | compensation | PaymentCancelled                            |
 | Сформирована заявка на доставку    |    domain    | DeliveryScheduled                        |
 | Заявка на доставку не сформирована | compensation | DeliverySchedulingFailed                 |
 | Уведомление продавцу о подготовке товара | domain | SellerNotifiedForDispatch                |
@@ -35,7 +35,6 @@
 | Заказ не подтверждён покупателем   |   timeout    | OrderConfirmTimeout                 |
 | Заказ отменён продавцом            | compensation | SellerCanceledOrder                 |
 | Отмена резервирования товара       | compensation | CancelReservation                 |
-| Отмена оплаты товара       | compensation | CancelPayment                 |
 | Не удалось осуществить доставку    | compensation | DeliveryFailed                 |
 
 ## События при просмотре заказа покупателем ##

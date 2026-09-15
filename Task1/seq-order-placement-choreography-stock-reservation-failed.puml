@@ -15,7 +15,7 @@ buyer -> ShoppingCartService : Подтвердить состав, указат
 ShoppingCartService ->> StockService : Событие «CartConfirmed»
 
 StockService -> StockService : Ошибка: нет товара
-StockService -->> ShoppingCartService : Событие «StockReservationFailed»
+StockService ->> ShoppingCartService : Событие «StockReservationFailed»
 
 ShoppingCartService ->> NotificationService : Событие «OrderAutomaticallyCanceled»
 NotificationService ->> buyer : Уведомление: статус заказа «Автоотмена»

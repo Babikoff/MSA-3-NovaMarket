@@ -31,13 +31,14 @@ PaymentService ->> OrderService : Событие «PaymentSucceeded»
 PaymentService ->> DeliveryService : Событие «PaymentSucceeded»
 
 DeliveryService -> DeliveryService : Не удалось сформировать заявку на доставку
-DeliveryService ->> PaymentService : Команда «CancelPayment»
-
-PaymentService ->> OrderService : Событие «PaymentCanceled»
+DeliveryService ->> PaymentService : Событие «DeliverySchedulingFailed»
+PaymentService -> PaymentService : Компенсация: отменить списание средств
+PaymentService ->> OrderService : Событие «PaymentCancelled»
 OrderService -> OrderService : Отменить заказ
-OrderService ->> StockService : Команда «CancelReservation»
+OrderService ->> StockService : Событие «CancelReservation»
+StockService -> StockService : Компенсация: снять резерв товаров
 
 ShoppingCartService ->> NotificationService : Событие «OrderAutomaticallyCanceled»
-NotificationService ->> buyer : Уведомление: 
+NotificationService ->> buyer : Уведомление: статус заказа «Автоотмена» 
 
 @enduml
