@@ -14,7 +14,7 @@ System_Ext(paymentGateways, "Платёжные шлюзы", "Стандартн
 System_Ext(logisticsCompanies, "Логистические компании", "Службы доставки")
 
 'Граница облачной системы
-System_Boundary(cloud_system, "Backend NovaMarket") {
+System_Boundary(backend_system, "Backend NovaMarket") {
   Container(apiGateway, "API Gateway", "Nginx", "")
 
   Container(shoppingCartService, "Stock Service", "", "")
