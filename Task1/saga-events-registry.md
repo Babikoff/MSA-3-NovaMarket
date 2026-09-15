@@ -30,11 +30,10 @@
 | Уведомление покупателю об успешном оформлении | domain | BuyerNotifiedOrderConfirmed         |
 | Продавец окончательно подтвердил заказ | domain   | SellerConfirmedDeliveryOrder        |
 | Подтверждение заказа покупателем   |    domain    | OrderConfirmed                      |
-| Заказ отменён покупателем          | compensation | BuyerCanceledOrder                  |
+| Заказ отменён покупателем          | compensation | BuyerCancelledOrder                  |
 | Заказ отменён автоматически | compensation | OrderAutomaticallyCanceled |
 | Заказ не подтверждён покупателем   |   timeout    | OrderConfirmTimeout                 |
-| Заказ отменён продавцом            | compensation | SellerCanceledOrder                 |
-| Отмена резервирования товара       | compensation | CancelReservation                 |
+| Заказ отменён продавцом            | compensation | SellerCancelledOrder                 |
 | Не удалось осуществить доставку    | compensation | DeliveryFailed                 |
 
 ## События при просмотре заказа покупателем ##

@@ -35,7 +35,7 @@ DeliveryService ->> PaymentService : Событие «DeliverySchedulingFailed»
 PaymentService -> PaymentService : Компенсация: отменить списание средств
 PaymentService ->> OrderService : Событие «PaymentCancelled»
 OrderService -> OrderService : Отменить заказ
-OrderService ->> StockService : Событие «CancelReservation»
+OrderService ->> StockService : Событие «OrderAutomaticallyCancelled»
 StockService -> StockService : Компенсация: снять резерв товаров
 
 ShoppingCartService ->> NotificationService : Событие «OrderAutomaticallyCanceled»
