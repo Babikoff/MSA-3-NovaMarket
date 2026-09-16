@@ -28,9 +28,12 @@ PaymentService -> PaymentService : Не удалось списать средс
 
 PaymentService ->> OrderService : Событие «PaymentFailed»
 OrderService -> OrderService : Отменить заказ
-OrderService ->> StockService : Событие «CancelReservation»
+OrderService ->> StockService : Событие «OrderCanceled»
 
-ShoppingCartService ->> NotificationService : Событие «OrderAutomaticallyCanceled»
+StockService -> StockService : Компенсация: снять резерв товаров
+StockService ->> ShoppingCartService : Событие «StockReservationCancelled»
+
+ShoppingCartService ->> NotificationService : Событие «OrderCancellationFinished»
 NotificationService ->> buyer : Уведомление: статус заказа «Автоотмена»
 
 @enduml

@@ -21,6 +21,7 @@ ShoppingCartService ->> Bus : Опубликовать событие «BuyerCan
 
 Bus -> OrderService : Событие «BuyerCancelledOrder»
 OrderService -> OrderService : Перевести заказ в статус «Отменяется»
+OrderService ->> Bus : Опубликовать «OrderCancelled»
 
 Bus -> StockService : Событие «BuyerCancelledOrder»
 StockService -> StockService : если был StockReserved → компенсация: снять резерв

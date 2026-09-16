@@ -43,8 +43,8 @@ Rel(apiGateway, paymentService, "REST")
 Rel(notificationService, apiGateway, "REST")
 
 'Нотификации
-Rel(notificationService, buyerMobileApp, "ServerPush/WebSocke")
-Rel(notificationService, sellerMobileApp, "ServerPush/WebSocke")
+Rel(notificationService, buyerMobileApp, "ServerPush/WebSocket")
+Rel(notificationService, sellerMobileApp, "ServerPush/WebSocket")
 
 'Интеграции
 Rel(paymentService, paymentGateways, "")
@@ -52,11 +52,11 @@ Rel(logisticsCompanies, deliveryService, "")
 Rel(notificationService, logisticsCompanies, "")
 
 'Хореография: все микросервисы обмениваются событиями через Event Bus (Kafka)
-BiRel(shoppingCartService, kafka, "publish/subscribe события")
-BiRel(stockService, kafka, "publish/subscribe события")
-BiRel(orderService, kafka, "publish/subscribe события")
-BiRel(paymentService, kafka, "publish/subscribe события")
-BiRel(deliveryService, kafka, "publish/subscribe события")
-BiRel(notificationService, kafka, "publish/subscribe события")
+BiRel(shoppingCartService, kafka, "publish: CartConfirmed, OrderAutomaticallyCanceled, BuyerCancelledOrder\nsubscribe: StockReservationFailed")
+BiRel(stockService, kafka, "publish: StockReserved, StockReservationFailed, StockReservationCancelled\nsubscribe: CartConfirmed, BuyerCancelledOrder, OrderCancellationFinished, CancelReservation")
+BiRel(orderService, kafka, "publish: PaymentInitiated, OrderCancellationFinished, BuyerNotifiedOrderCancelled\nsubscribe: StockReserved, PaymentSucceeded, PaymentFailed, PaymentCancelled, StockReservationCancelled, DeliveryCancelled, BuyerCancelledOrder")
+BiRel(paymentService, kafka, "publish: PaymentSucceeded, PaymentFailed, PaymentCancelled\nsubscribe: PaymentInitiated, DeliverySchedulingFailed, BuyerCancelledOrder")
+BiRel(deliveryService, kafka, "publish: DeliveryScheduled, DeliverySchedulingFailed, DeliveryCancelled\nsubscribe: PaymentSucceeded, BuyerCancelledOrder")
+BiRel(notificationService, kafka, "subscribe: DeliveryScheduled, OrderAutomaticallyCanceled, BuyerNotifiedOrderCancelled")
 
 @enduml

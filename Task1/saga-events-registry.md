@@ -33,8 +33,9 @@
 | Уведомление покупателю об отмене заказа | domain | BuyerNotifiedOrderCancelled          |
 | Продавец окончательно подтвердил заказ | domain   | SellerConfirmedDeliveryOrder        |
 | Подтверждение заказа покупателем   |    domain    | OrderConfirmed                      |
-| Заказ отменён покупателем          | compensation | BuyerCancelledOrder                  |
-| Заказ отменён автоматически | compensation | OrderAutomaticallyCancelled |
+| Заказ явно отменён покупателем     | compensation | BuyerCancelledOrder                  |
+| Заказ отменён (компенсация сбоя)   | compensation | OrderCancelled |
+| Завершена отмена заказа | compensation | OrderCancellationFinished |
 | Заказ не подтверждён покупателем   |   timeout    | OrderConfirmTimeout                 |
 | Не удалось осуществить доставку    | compensation | DeliveryFailed                 |
 

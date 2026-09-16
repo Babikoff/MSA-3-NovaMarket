@@ -35,10 +35,11 @@ DeliveryService ->> PaymentService : Событие «DeliverySchedulingFailed»
 PaymentService -> PaymentService : Компенсация: отменить списание средств
 PaymentService ->> OrderService : Событие «PaymentCancelled»
 OrderService -> OrderService : Отменить заказ
-OrderService ->> StockService : Событие «OrderAutomaticallyCancelled»
+OrderService ->> StockService : Событие «OrderCanceled»
 StockService -> StockService : Компенсация: снять резерв товаров
+StockService ->> ShoppingCartService : Событие «StockReservationCancelled»
 
-ShoppingCartService ->> NotificationService : Событие «OrderAutomaticallyCanceled»
+ShoppingCartService ->> NotificationService : Событие «OrderCancellationFinished»
 NotificationService ->> buyer : Уведомление: статус заказа «Автоотмена» 
 
 @enduml
