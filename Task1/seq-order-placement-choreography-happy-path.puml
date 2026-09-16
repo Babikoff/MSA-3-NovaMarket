@@ -23,7 +23,7 @@ StockService -> StockService : Проверить и зарезервирова�
 StockService ->> OrderService : Событие «StockReserved»
 
 OrderService -> OrderService : Создать заказ в состоянии «Ожидание оплаты»
-OrderService ->> PaymentService : Событие «PaymentInitiated»
+OrderService ->> PaymentService : Событие «OrderNeedsPayment»
 
 buyer -> PaymentService : Ввести данные карты и подтвердить платёж
 PaymentService -> PaymentService : Списать средства
@@ -35,9 +35,9 @@ DeliveryService -> DeliveryService : Сформировать заявку на 
 DeliveryService ->> NotificationService : Событие «DeliveryScheduled»
 
 NotificationService -> seller : Уведомление о подготовке товара к отправке
-seller --> OrderService : Подтверждение получения уведомления, продавец принял заказ и готовит к отправке
+seller --> DeliveryService : Подтверждение получения уведомления, продавец принял заказ и готовит к отправке
 
-OrderService -> NotificationService : Уведомить покупателя об успешном оформлении заказа
+DeliveryService -> NotificationService : Уведомить покупателя об успешном оформлении заказа
 NotificationService -> buyer : Уведомление об успешном оформлении заказа
 
 @enduml

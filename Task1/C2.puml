@@ -52,11 +52,11 @@ Rel(logisticsCompanies, deliveryService, "")
 Rel(notificationService, logisticsCompanies, "")
 
 'Хореография: все микросервисы обмениваются событиями через Event Bus (Kafka)
-BiRel(shoppingCartService, kafka, "publish: CartConfirmed, OrderAutomaticallyCanceled, BuyerCancelledOrder\nsubscribe: StockReservationFailed")
-BiRel(stockService, kafka, "publish: StockReserved, StockReservationFailed, StockReservationCancelled\nsubscribe: CartConfirmed, BuyerCancelledOrder, OrderCancellationFinished, CancelReservation")
-BiRel(orderService, kafka, "publish: PaymentInitiated, OrderCancellationFinished, BuyerNotifiedOrderCancelled\nsubscribe: StockReserved, PaymentSucceeded, PaymentFailed, PaymentCancelled, StockReservationCancelled, DeliveryCancelled, BuyerCancelledOrder")
-BiRel(paymentService, kafka, "publish: PaymentSucceeded, PaymentFailed, PaymentCancelled\nsubscribe: PaymentInitiated, DeliverySchedulingFailed, BuyerCancelledOrder")
-BiRel(deliveryService, kafka, "publish: DeliveryScheduled, DeliverySchedulingFailed, DeliveryCancelled\nsubscribe: PaymentSucceeded, BuyerCancelledOrder")
-BiRel(notificationService, kafka, "subscribe: DeliveryScheduled, OrderAutomaticallyCanceled, BuyerNotifiedOrderCancelled")
+BiRel(shoppingCartService, kafka, "publish:\nCartConfirmed, UnableToCreateOrder\n\nsubscribe:\nStockReservationFailed")
+BiRel(stockService, kafka, "publish:\nStockReserved, StockReservationFailed, StockReservationCancelled\n\nsubscribe:\nCartConfirmed, BuyerCancelledOrder, OrderCancelled")
+BiRel(orderService, kafka, "publish:\nOrderNeedsPayment, OrderCancelled, BuyerCancelledOrder, OrderCancellationFinished\n\nsubscribe:\nStockReserved, PaymentSucceeded, PaymentFailed, PaymentCancelled, StockReservationCancelled, DeliveryCancelled, BuyerCancelledOrder")
+BiRel(paymentService, kafka, "publish:\nPaymentSucceeded, PaymentFailed, PaymentCancelled\n\nsubscribe:\nOrderNeedsPayment, DeliverySchedulingFailed, BuyerCancelledOrder")
+BiRel(deliveryService, kafka, "publish:\nDeliveryScheduled, DeliverySchedulingFailed, DeliveryCancelled\n\nsubscribe:\nPaymentSucceeded, BuyerCancelledOrder")
+BiRel(notificationService, kafka, "subscribe:\nDeliveryScheduled, OrderCancellationFinished, UnableToCreateOrder")
 
 @enduml

@@ -8,7 +8,6 @@ note over Bus
 end note
 
 actor "Покупатель" as buyer
-participant "Shopping Cart Service" as ShoppingCartService
 participant "Event Bus (Kafka)" as Bus
 participant "Order Service" as OrderService
 participant "Stock Service" as StockService
@@ -16,8 +15,8 @@ participant "Payment Service" as PaymentService
 participant "Delivery Service" as DeliveryService
 participant "Notification Service" as NotificationService
 
-buyer -> ShoppingCartService : Нажать «Отменить заказ» (на любом этапе)
-ShoppingCartService ->> Bus : Опубликовать событие «BuyerCancelledOrder»
+buyer -> OrderService : Нажать «Отменить заказ» (на любом этапе)
+OrderService ->> Bus : Опубликовать событие «BuyerCancelledOrder»
 
 Bus -> OrderService : Событие «BuyerCancelledOrder»
 OrderService -> OrderService : Перевести заказ в статус «Отменяется»
@@ -39,7 +38,7 @@ DeliveryService ->> Bus : Опубликовать «DeliveryCancelled»
 Bus -> OrderService : Событие «DeliveryCancelled»
 
 OrderService -> OrderService : Все компенсации получены → заказ «Отменён» (завершено)
-OrderService ->> NotificationService : Событие «BuyerNotifiedOrderCancelled»
+OrderService ->> NotificationService : Событие «OrderCancellationFinished»
 NotificationService ->> buyer : Уведомление: заказ отменён
 
 @enduml

@@ -17,7 +17,7 @@ ShoppingCartService ->> StockService : Событие «CartConfirmed»
 StockService -> StockService : Ошибка: нет товара
 StockService ->> ShoppingCartService : Событие «StockReservationFailed»
 
-ShoppingCartService ->> NotificationService : Событие «OrderCancellationFinished»
+ShoppingCartService ->> NotificationService : Событие «UnableToCreateOrder»
 NotificationService ->> buyer : Уведомление: статус заказа «Автоотмена»
 
 @enduml

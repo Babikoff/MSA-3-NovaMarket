@@ -21,19 +21,20 @@ StockService -> StockService : Проверить и зарезервирова�
 StockService ->> OrderService : Событие «StockReserved»
 
 OrderService -> OrderService : Создать заказ в состоянии «Ожидание оплаты»
-OrderService ->> PaymentService : Событие «PaymentInitiated»
+OrderService ->> PaymentService : Событие «OrderNeedsPayment»
 
 buyer -> PaymentService : Ввести данные карты и подтвердить платёж
 PaymentService -> PaymentService : Не удалось списать средства
 
 PaymentService ->> OrderService : Событие «PaymentFailed»
 OrderService -> OrderService : Отменить заказ
-OrderService ->> StockService : Событие «OrderCanceled»
+OrderService ->> StockService : Событие «OrderCancelled»
 
 StockService -> StockService : Компенсация: снять резерв товаров
 StockService ->> ShoppingCartService : Событие «StockReservationCancelled»
+StockService ->> OrderService : Событие «StockReservationCancelled»
 
-ShoppingCartService ->> NotificationService : Событие «OrderCancellationFinished»
+OrderService ->> NotificationService : Событие «OrderCancellationFinished»
 NotificationService ->> buyer : Уведомление: статус заказа «Автоотмена»
 
 @enduml
