@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal EnableExtensions
 
 REM ============================================================
@@ -125,10 +125,10 @@ REM ---------- Ensure Locust is installed for load testing ----------
 echo.
 echo Checking and installing locust (if it is not installed)
 
-where locust >nul 2>&1
+python -c "import locust" >nul 2>&1
 if errorlevel 1 (
-    echo Locust CLI not found. Installing locust via pip ...
-    pip install locust
+    echo Locust module not found. Installing locust via pip user install ...
+    python -m pip install --user locust
     if errorlevel 1 (
         echo [ERROR] Failed to install locust. Ensure Python and pip are installed and on PATH.
         exit /b 1
@@ -145,7 +145,7 @@ echo Ready to running loading test. Press any key to start loading.
 pause >nul
 
 echo Starting loading test.
-locust -f locustfile.py --host http://localhost:8080 --headless -u 100 -r 20 -t 2m
+python -m locust -f locustfile.py --host http://localhost:8080 --headless -u 100 -r 20 -t 2m
 
 exit /b 0
 
