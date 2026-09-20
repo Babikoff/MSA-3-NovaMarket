@@ -82,10 +82,10 @@ if errorlevel 1 goto :error_smoke
 echo OK: metrics-server is checked
 
 REM ---------- [3/5] Load image into Minikube ----------
-echo.
-echo [3/5] Loading image into Minikube ...
-minikube image load %IMAGE_NAME%:%FINAL_TAG%
-if errorlevel 1 goto :error
+@REM  echo.
+@REM  echo [3/5] Loading image %IMAGE_NAME%:%FINAL_TAG% into Minikube ...
+@REM  minikube image load %IMAGE_NAME%:%FINAL_TAG%
+@REM  if errorlevel 1 goto :error
 
 REM ---------- [4/5] Helm deploy / redeploy ----------
 echo.
@@ -110,7 +110,7 @@ echo Preparing for load testing
 
 echo.
 echo Delete all HPAs
-kubectl -n scaletest delete hpa
+kubectl -n scaletest delete hpa --all
 
 echo.
 echo Appling HPA config: %HPA_CONF_FILE%
@@ -141,7 +141,9 @@ if not exist "%~dp0locustfile.py" (
 )
 
 echo.
-echo Ready to running loading test. Press any key to start loading.
+echo Ready to running loading test. 
+echo.
+echo Press any key to run loading test.
 pause >nul
 
 echo Starting loading test.
