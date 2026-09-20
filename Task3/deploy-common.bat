@@ -78,22 +78,12 @@ kubectl get hpa --all-namespaces
 kubectl delete hpa --all --all-namespaces
 
 REM 2) Delete the Helm-tracked Deployment "scaletestapp"
-helm delete scaletestapp
-
-REM 3) Delete leftover HPA replica Deployments (label app=scaletestapp)
-kubectl get deployments -o name
-kubectl delete deployment scaletestapp-7984b5ffb6 scaletestapp-87fc668f8 scaletestapp-7bfbc65d66 scaletestapp-58fcc59c7d scaletestapp-6475f44c55
-
+@REM  helm delete scaletestapp
 
 
 echo.
 echo Appling HPA config: %HPA_CONF_FILE%
 kubectl apply -f %HPA_CONF_FILE%
-
-@REM TODO: move to another bat file
-@REM  echo. 
-@REM  echo Monitoring: %HPA_TEST_NAME%
-@REM  kubectl get hpa %HPA_TEST_NAME% -w
 
 REM ---------- Ensure Locust is installed for load testing ----------
 echo.
@@ -120,13 +110,14 @@ echo.
 echo Press any key to run loading test.
 pause >nul
 
-echo Starting loading test on forwarded port 8080.
+echo Cleaning port 8080.
+taskkill /fi "WINDOWTITLE eq port-forward" >nul 2>&1
 
 echo Starting load test on forwarded port 8080.
 start "port-forward" /b cmd /c "kubectl port-forward svc/scaletestapp 8080:80"
 REM Give the tunnel a few seconds to establish
 timeout /t 5 /nobreak >nul
-python -m locust -f locustfile.py --host http://localhost:8080 --headless -u 100 -r 20 -t 2m
+python -m locust -f locustfile.py --host http://localhost:8080 --headless -u 200 -r 50 -t 2m
 REM Stop the background tunnel now that the test is done
 taskkill /fi "WINDOWTITLE eq port-forward" >nul 2>&1
 

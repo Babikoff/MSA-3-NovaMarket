@@ -5,6 +5,7 @@
 kubectl delete hpa scaletestapp-hpa-mem
 kubectl delete hpa --all --all-namespaces
 
+REM 2) Delete the Helm-tracked Deployment "scaletestapp"
 helm delete scaletestapp
 
 kubectl get pods --all-namespaces
