@@ -1,4 +1,4 @@
-helm template booking-service ./helm/booking-service -f ./helm/booking-service/values-staging.yaml --set image.tag=1.0.0
-helm lint ./helm/booking-service -f ./helm/booking-service/values-staging.yaml
-helm lint ./helm/booking-service -f ./helm/booking-service/values-prod.yaml
-helm lint ./helm/booking-service -f ./helm/booking-service/values.yaml
+helm template scaletestapp ./helm/scaletestapp -f ./helm/scaletestapp/values-staging.yaml --set image.tag=latest
+helm lint ./helm/scaletestapp -f ./helm/scaletestapp/values-staging.yaml
+helm lint ./helm/scaletestapp -f ./helm/scaletestapp/values-prod.yaml
+helm lint ./helm/scaletestapp -f ./helm/scaletestapp/values.yaml

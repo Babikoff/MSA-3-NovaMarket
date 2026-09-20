@@ -20,9 +20,13 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
-          env:
-            - name: ENABLE_FEATURE_X
-              value: "{{.Values.env.ENABLE_FEATURE_X}}"
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}            
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.httpGet.path }}
