@@ -21,17 +21,14 @@ resources:
 # Not related to current task but is a standard
 livenessProbe:
   httpGet:
-    path: /ping
+    path: /
     port: 8080
   initialDelaySeconds: 5
   periodSeconds: 20
 
 readinessProbe:
   httpGet:
-    path: /ping
+    path: /
     port: 8080
   initialDelaySeconds: 5
   periodSeconds: 10
-
-# env:
-#   ENABLE_FEATURE_X: "false"

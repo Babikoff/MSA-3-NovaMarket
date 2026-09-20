@@ -4,20 +4,16 @@ setlocal EnableExtensions
 REM ============================================================
 REM  deploy-common.bat - shared deploy/redeploy logic
 REM
-REM  Usage: call deploy-common.bat ENV_LABEL HPA_CONF_FILE CONTAINER TEST_PORT
+REM  Usage: call deploy-common.bat HPA_CONF_FILE
 REM    %1 HPA_CONF_FILE e.g. ./hpa-by-mem.yaml
 REM    %2 HPA_TEST_NAME metadata->name from HPA_CONF_FILE. E.g. "scaletestapp-hpa-mem".
-REM    %3 CONTAINER   smoke-test container name
-REM    %4 TEST_PORT   smoke-test local port
-REM
-REM  Optional env: IMAGE_TAG = fixed image tag (default: timestamp)
 REM
 REM  Flow: build -> smoke test /ping -> minikube image load
 REM        -> helm upgrade --install -> kubectl rollout status
 REM ============================================================
 
 if "%~1"=="" (
-    echo [ERROR] Usage: deploy-common.bat HPA_CONF_FILE HPA_TEST_NAME CONTAINER TEST_PORT
+    echo [ERROR] Usage: deploy-common.bat HPA_CONF_FILE HPA_TEST_NAME
     exit /b 1
 )
 
@@ -26,43 +22,15 @@ cd /d "%~dp0"
 
 set "HPA_CONF_FILE=%~1"
 set "HPA_TEST_NAME=%~2"
-set "CONTAINER=%~3"
-set "TEST_PORT=%~4"
-set "IMAGE_NAME=scaletestapp"
 set "DEPLOYMENT_NAME=scaletestapp"
 set "CHART_DIR=./helm/scaletestapp"
 
-REM --- Use 'latest' image unless IMAGE_TAG is provided ---
-if defined IMAGE_TAG (
-    set "FINAL_TAG=%IMAGE_TAG%"
-) else (
-    @REM  for /f "delims=" %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMddHHmmss"') do set "FINAL_TAG=local-%%i"
-    set "FINAL_TAG=latest"
-)
+set "FINAL_TAG=latest"
 
 echo ============================================================
-echo  Deploying %DEPLOYMENT_NAME% [%ENV_LABEL%]
-echo  Image : %IMAGE_NAME%:%FINAL_TAG%
+echo  Deploying %DEPLOYMENT_NAME%
 echo  HPA config: %HPA_CONF_FILE%
 echo ============================================================
-
-@REM  REM ---------- [1/5] Build the image ----------
-@REM  echo.
-@REM  echo [1/5] Building image %IMAGE_NAME%:%FINAL_TAG% ...
-@REM  docker build -t %IMAGE_NAME%:%FINAL_TAG% ./booking-service
-@REM  if errorlevel 1 goto :error
-
-REM ---------- [2/5] Smoke-test /ping ----------
-@REM  echo.
-@REM  echo [2/5] Smoke-testing /ping ...
-@REM  docker rm -f %CONTAINER% >nul 2>&1
-@REM  docker run -d --name %CONTAINER% -p %TEST_PORT%:8080 %IMAGE_NAME%:%FINAL_TAG%
-@REM  if errorlevel 1 goto :error
-@REM  timeout /t 2 /nobreak >nul
-@REM  curl -f http://localhost:%TEST_PORT%/ping >nul 2>&1
-@REM  if errorlevel 1 goto :error_smoke
-@REM  echo       OK: /ping returned pong
-@REM  docker rm -f %CONTAINER% >nul 2>&1
 
 REM ---------- [2/5] Ensure MiniKube is running with metrics-server ----------
 echo.
@@ -81,15 +49,9 @@ kubectl get deployment metrics-server -n kube-system >nul 2>&1
 if errorlevel 1 goto :error_smoke
 echo OK: metrics-server is checked
 
-REM ---------- [3/5] Load image into Minikube ----------
-@REM  echo.
-@REM  echo [3/5] Loading image %IMAGE_NAME%:%FINAL_TAG% into Minikube ...
-@REM  minikube image load %IMAGE_NAME%:%FINAL_TAG%
-@REM  if errorlevel 1 goto :error
-
 REM ---------- [4/5] Helm deploy / redeploy ----------
 echo.
-echo [4/5] helm upgrade --install (%ENV_LABEL% values) ...
+echo [4/5] helm upgrade --install ...
 helm upgrade --install %DEPLOYMENT_NAME% %CHART_DIR% ^
     --set image.tag=%FINAL_TAG% ^
     --set image.pullPolicy=IfNotPresent
@@ -102,7 +64,7 @@ kubectl rollout status deployment/%DEPLOYMENT_NAME%
 if errorlevel 1 goto :error
 
 echo.
-echo [OK] %ENV_LABEL% deployment successful.
+echo [OK] deployment successful.
 kubectl get pods -l app=%DEPLOYMENT_NAME%
 
 echo.
@@ -110,7 +72,19 @@ echo Preparing for load testing
 
 echo.
 echo Delete all HPAs
-kubectl -n scaletest delete hpa --all
+@REM  kubectl -n scaletest delete hpa --all
+REM 1) Remove all HPA definitions (all namespaces, to catch strays)
+kubectl get hpa --all-namespaces
+kubectl delete hpa --all --all-namespaces
+
+REM 2) Delete the Helm-tracked Deployment "scaletestapp"
+helm delete scaletestapp
+
+REM 3) Delete leftover HPA replica Deployments (label app=scaletestapp)
+kubectl get deployments -o name
+kubectl delete deployment scaletestapp-7984b5ffb6 scaletestapp-87fc668f8 scaletestapp-7bfbc65d66 scaletestapp-58fcc59c7d scaletestapp-6475f44c55
+
+
 
 echo.
 echo Appling HPA config: %HPA_CONF_FILE%
@@ -146,15 +120,21 @@ echo.
 echo Press any key to run loading test.
 pause >nul
 
-echo Starting loading test.
+echo Starting loading test on forwarded port 8080.
+
+echo Starting load test on forwarded port 8080.
+start "port-forward" /b cmd /c "kubectl port-forward svc/scaletestapp 8080:80"
+REM Give the tunnel a few seconds to establish
+timeout /t 5 /nobreak >nul
 python -m locust -f locustfile.py --host http://localhost:8080 --headless -u 100 -r 20 -t 2m
+REM Stop the background tunnel now that the test is done
+taskkill /fi "WINDOWTITLE eq port-forward" >nul 2>&1
 
 exit /b 0
 
 :error_smoke
 echo.
 echo [ERROR] Smoke test failed: could not test metrics-server -n <наименование namespace>
-@REM  docker rm -f %CONTAINER% >nul 2>&1
 goto :error
 
 :error
