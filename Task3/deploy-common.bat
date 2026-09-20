@@ -121,10 +121,31 @@ kubectl apply -f %HPA_CONF_FILE%
 @REM  echo Monitoring: %HPA_TEST_NAME%
 @REM  kubectl get hpa %HPA_TEST_NAME% -w
 
+REM ---------- Ensure Locust is installed for load testing ----------
+echo.
+echo Checking and installing locust (if it is not installed)
+
+where locust >nul 2>&1
+if errorlevel 1 (
+    echo Locust CLI not found. Installing locust via pip ...
+    pip install locust
+    if errorlevel 1 (
+        echo [ERROR] Failed to install locust. Ensure Python and pip are installed and on PATH.
+        exit /b 1
+    )
+)
+echo OK: locust is available.
+if not exist "%~dp0locustfile.py" (
+    echo [ERROR] locustfile.py not found in %~dp0
+    exit /b 1
+)
+
 echo.
 echo Ready to running loading test. Press any key to start loading.
+pause >nul
 
-@REM locust -f locustfile.py --host http://localhost:8080 --headless -u 200 -r 20 -t 3m
+echo Starting loading test.
+locust -f locustfile.py --host http://localhost:8080 --headless -u 100 -r 20 -t 2m
 
 exit /b 0
 
