@@ -1,3 +1,3 @@
 echo. 
-echo Monitoring all HPA
+echo Monitoring HPA
 kubectl get hpa scaletestapp-hpa-mem -w

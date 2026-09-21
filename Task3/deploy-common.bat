@@ -6,14 +6,13 @@ REM  deploy-common.bat - shared deploy/redeploy logic
 REM
 REM  Usage: call deploy-common.bat HPA_CONF_FILE
 REM    %1 HPA_CONF_FILE e.g. ./hpa-by-mem.yaml
-REM    %2 HPA_TEST_NAME metadata->name from HPA_CONF_FILE. E.g. "scaletestapp-hpa-mem".
 REM
-REM  Flow: build -> smoke test /ping -> minikube image load
+REM  Flow: minikube image load
 REM        -> helm upgrade --install -> kubectl rollout status
 REM ============================================================
 
 if "%~1"=="" (
-    echo [ERROR] Usage: deploy-common.bat HPA_CONF_FILE HPA_TEST_NAME
+    echo [ERROR] Usage: deploy-common.bat HPA_CONF_FILE
     exit /b 1
 )
 
@@ -21,7 +20,6 @@ REM --- Ensure relative paths resolve relative to this script's dir ---
 cd /d "%~dp0"
 
 set "HPA_CONF_FILE=%~1"
-set "HPA_TEST_NAME=%~2"
 set "DEPLOYMENT_NAME=scaletestapp"
 set "CHART_DIR=./helm/scaletestapp"
 
@@ -117,7 +115,7 @@ echo Starting load test on forwarded port 8080.
 start "port-forward" /b cmd /c "kubectl port-forward svc/scaletestapp 8080:80"
 REM Give the tunnel a few seconds to establish
 timeout /t 5 /nobreak >nul
-python -m locust -f locustfile.py --host http://localhost:8080 --headless -u 200 -r 50 -t 2m
+python -m locust -f locustfile.py --host http://localhost:8080 --headless -u 200 -r 50 -t 4m
 REM Stop the background tunnel now that the test is done
 taskkill /fi "WINDOWTITLE eq port-forward" >nul 2>&1
 
