@@ -1,0 +1,29 @@
+# prometheus-adapter-config.yaml
+#
+# Custom prometheus-adapter configuration (mounted as the adapter's
+# config.yaml via the Helm chart's rules.existing).
+#
+# The rule below maps the app's namespace/pod labels to Kubernetes resources,
+# so prometheus-adapter serves it as a per-pod (Pods) CUSTOM metric named
+# "http_requests_per_second" under /apis/custom.metrics.k8s.io/v1beta1/.
+# HorizontalPodAutoscaler hpa-by-rps.yaml (type: Pods, AverageValue 10)
+# reads it from there and scales so each pod handles <= 10 RPS.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scaletestapp-adapter-config
+  namespace: monitoring
+data:
+  config.yaml: |
+    rules:
+    - seriesQuery: 'http_requests_total'
+      resources:
+        # map the app's namespace/pod labels to K8s resources so this is
+        # served as a per-pod (Pods) custom metric named http_requests_per_second
+        # under /apis/custom.metrics.k8s.io/v1beta1
+        overrides:
+          namespace: {resource: namespace}
+          pod: {resource: pod}
+      name:
+        as: http_requests_per_second
+      metricsQuery: 'sum(rate(http_requests_total[1m])) by (<<.GroupBy>>)'
