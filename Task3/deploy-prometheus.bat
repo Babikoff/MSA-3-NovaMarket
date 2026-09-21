@@ -20,7 +20,7 @@ cd /d "%~dp0"
 
 set "PROM_REPO=prometheus-community"
 set "PROM_REPO_URL=https://prometheus-community.github.io/helm-charts"
-set "NS=monitoring"
+set "PROM_NAMESPACE=monitoring"
 set "ADAPTER_CONFIG_FILE=%~dp0prometheus-adapter-config.yaml"
 set "ADAPTER_CONFIG_NAME=scaletestapp-adapter-config"
 set "SERVICE_MONITOR_FILE=%~dp0service-monitor.yaml"
@@ -37,7 +37,8 @@ echo [1/6] Checking Minikube ...
 minikube status >nul 2>&1
 if errorlevel 1 (
     echo Minikube is NOT running. Starting it ...
-    minikube start --cpus=4 --memory=5120 --addons=metrics-server
+    @REM  minikube start --cpus=4 --memory=5120 --addons=metrics-server
+    minikube start --addons=metrics-server
     if errorlevel 1 goto :error
 ) else (
     echo Minikube is running. Enabling metrics-server addon ...
@@ -48,7 +49,7 @@ if errorlevel 1 goto :error_smoke
 
 REM ---------- [2/6] Add / update Helm repo ----------
 echo.
-echo [2/6] Ensuring Helm repo %PROM_REPO% ...
+echo [2/6] Ensuring Helm repo %PROM_REPO% is added.
 helm repo add %PROM_REPO% %PROM_REPO_URL% >nul 2>&1
 if errorlevel 1 goto :error
 helm repo update
@@ -58,7 +59,7 @@ REM ---------- [3/6] Install kube-prometheus-stack ----------
 echo.
 echo [3/6] Installing kube-prometheus-stack (release: prometheus) ...
 helm upgrade --install prometheus %PROM_REPO%/kube-prometheus-stack ^
-    --namespace %NS% --create-namespace ^
+    --namespace %PROM_NAMESPACE% --create-namespace ^
     --set grafana.enabled=false
 if errorlevel 1 goto :error
 
@@ -72,7 +73,7 @@ echo [4/6] Installing prometheus-adapter ...
 echo   Prometheus URL: %PROM_KUBE_URL%
 echo   Adapter ConfigMap: %ADAPTER_CONFIG_NAME%
 helm upgrade --install prometheus-adapter %PROM_REPO%/prometheus-adapter ^
-    --namespace %NS% ^
+    --namespace %PROM_NAMESPACE% ^
     --set prometheus.url=%PROM_KUBE_URL% ^
     --set rules.existing=%ADAPTER_CONFIG_NAME%
 if errorlevel 1 goto :error
@@ -80,7 +81,7 @@ if errorlevel 1 goto :error
 REM ---------- [5/6] Apply ServiceMonitor + HPA ----------
 echo.
 echo [5/6] Applying ServiceMonitor and HPA ...
-REM Only ONE HPA may control a Deployment (else it shows AmbiguousSelector):
+echo Remove all previous HPA (if any):
 kubectl delete hpa --all --all-namespaces --ignore-not-found=true >nul 2>&1
 kubectl apply -f %SERVICE_MONITOR_FILE%
 if errorlevel 1 goto :error
@@ -90,7 +91,7 @@ if errorlevel 1 goto :error
 REM ---------- [6/6] Verify + expose Prometheus UI ----------
 echo.
 echo [6/6] Verifying registration ...
-kubectl --namespace %NS% get prometheus,servicemonitor,pods
+kubectl --namespace %PROM_NAMESPACE% get prometheus,servicemonitor,pods
 kubectl get servicemonitor scaletestapp-mon -n default
 kubectl get hpa scaletestapp-hpa-rps
 
@@ -103,7 +104,7 @@ echo ============================================================
 echo Script finished. 
 echo To see Prometheus UI:
 echo   - start port-forwarding:
-echo    kubectl --namespace %NS% port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090
+echo    kubectl --namespace %PROM_NAMESPACE% port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090
 echo   - open the URL: http://localhost:9090  and then go to Status -> Targets
 echo ============================================================
 exit /b 0
