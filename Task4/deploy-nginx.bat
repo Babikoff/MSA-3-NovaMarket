@@ -17,7 +17,7 @@ if not exist "%NGINX_CONF%" (
     exit /b 1
 )
 
-echo [1/5] Cleaning port 8080
+echo [1/5] Cleaning port-forwards
 taskkill /fi "WINDOWTITLE eq port-forward" >nul 2>&1
 
 REM ---------- [2/5] Remove any previous container ----------
@@ -35,7 +35,8 @@ if errorlevel 1 (
 REM ---------- [4/5] Run Nginx, mounting the rate-limiter config ----------
 echo [4/5] Running Nginx container ...
 docker run -d --name %CONTAINER_NAME% --restart unless-stopped ^
-    -p %HOST_PORT%:80 ^
+    -p 9090:9090 ^
+    -p 8081:8081 ^
     -v "%NGINX_CONF%:/etc/nginx/conf.d/default.conf:ro" ^
     %NGINX_IMAGE%
 if errorlevel 1 (
