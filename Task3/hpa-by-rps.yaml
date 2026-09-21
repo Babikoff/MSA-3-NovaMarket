@@ -13,7 +13,7 @@ spec:
   - type: Pods
     pods:
       metric:
-        name: http_requests_per_second # Имя правила в adapter-config
+        name: http_requests_per_second # Имя правила из adapter-config
       target:
         type: AverageValue
         averageValue: "10" #Целевое значение RPS на один под

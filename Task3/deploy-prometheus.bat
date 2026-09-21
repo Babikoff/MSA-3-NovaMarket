@@ -4,15 +4,16 @@ setlocal EnableExtensions
 REM ============================================================
 REM  deploy-prometheus.bat
 REM
-REM  Setup of Prometheus monitoring for the "scaletestapp" into Minikube:
-REM   - kube-prometheus-stack (Prometheus Operator + CRDs + Prometheus)
-REM   - prometheus-adapter (custom.metrics.k8s.io -> Prometheus query)
-REM  Applying configs:
-REM   - service-monitor.yaml  (target discovery for scaletestapp)
-REM   - hpa-by-rps.yaml       (HPA autoscaling on the per-pod RPS metric)
+REM  Setups Prometheus monitoring for the "scaletestapp" into Minikube:
+REM   - kube-prometheus-stack
+REM   - prometheus-adapter
+REM  Applys configs:
+REM   - service-monitor.yaml
+REM   - hpa-by-rps.yaml
 REM
 REM  Result:
-REM   - Prometheus UI available at http://localhost:9090 (after port-forward)
+REM   - Prometheus UI available at http://localhost:9090 (after port-forward 
+REM     by "kubectl --namespace monitoring port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090")
 REM   - HPA "scaletestapp-hpa-rps" autoscale on "http_requests_per_second" adapter config rule
 REM ============================================================
 
