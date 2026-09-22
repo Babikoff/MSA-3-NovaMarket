@@ -9,11 +9,15 @@ cd /d "%~dp0"
 
 set "NGINX_IMAGE=nginx@sha256:62ff2089abf5a9ed33bd232895bef5e22f7bb4b200675cec49a5ebc48e3d4ac8"
 set "CONTAINER_NAME=nginx"
-set "HOST_PORT=8080"
 set "NGINX_CONF=%~1"
+set "PY_TEST_FILE=%~2"
 
 if not exist "%NGINX_CONF%" (
     echo [ERROR] %NGINX_CONF% not found.
+    exit /b 1
+)
+if not exist "%PY_TEST_FILE%" (
+    echo [ERROR] %PY_TEST_FILE% not found.
     exit /b 1
 )
 
@@ -49,5 +53,14 @@ echo [5/5] Deployment confirmed:
 docker ps --filter name=%CONTAINER_NAME%
 
 echo.
-echo [OK] Nginx deployed. Open http://localhost:%HOST_PORT%
+echo [OK] Nginx deployed.
+
+echo.
+echo Ready to running loading test. 
+echo.
+echo Press any key to run loading test.
+pause >nul
+
+python -m locust -f %PY_TEST_FILE% --host http://localhost:9090/fast --headless -u 10 -r 50 -t 1m
+
 exit /b 0
