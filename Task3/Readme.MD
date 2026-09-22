@@ -8,7 +8,7 @@
 Task3\monitor-hpa-by-mem.bat
 
 **Запуск теста**
-Task3\deploy-hpa-by-mem.bat
+Task3\run-hpa-test-by-mem.bat
 
 **Запуск Locust UI**
 python -m locust -f locustfile.py --host http://localhost:8080
@@ -33,7 +33,7 @@ http://localhost:9090 -> Status -> Target health
 Task3\monitor-hpa-by-mem.bat
 
 **Запуск теста**
-Task3\deploy-hpa-by-rps.bat
+Task3\run-hpa-test-by-rps.bat
 
 **Запуск Locust UI**
 `python -m locust -f locustfile.py --host http://localhost:8080`
