@@ -1,0 +1,1 @@
+python -m locust -f ratelimit-test.py --host http://localhost:8080

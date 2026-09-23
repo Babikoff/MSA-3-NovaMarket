@@ -39,6 +39,7 @@ if errorlevel 1 (
 REM ---------- [4/5] Run Nginx, mounting the rate-limiter config ----------
 echo [4/5] Running Nginx container ...
 docker run -d --name %CONTAINER_NAME% --restart unless-stopped ^
+    -p 8080:8080 ^
     -p 9090:9090 ^
     -p 8081:8081 ^
     -v "%NGINX_CONF%:/etc/nginx/conf.d/default.conf:ro" ^
@@ -56,11 +57,11 @@ echo.
 echo [OK] Nginx deployed.
 
 echo.
-echo Ready to running loading test. 
+echo Ready to run loading test. 
 echo.
-echo Press any key to run loading test.
-pause >nul
+@REM  echo Press any key to run loading test.
+@REM  pause >nul
 
-python -m locust -f %PY_TEST_FILE% --host http://localhost:9090/fast --headless -u 10 -r 50 -t 1m
+@REM  python -m locust -f %PY_TEST_FILE% --host http://localhost:8080/ --headless -u 10 -r 50 -t 1m
 
 exit /b 0
