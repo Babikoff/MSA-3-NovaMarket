@@ -1,0 +1,43 @@
+@startuml
+title UC-02 · Оформление заказа — SAGA оркестрация (асинхронная, Kafka) — диаграмма последовательности
+
+note over OrderService : Order Service — центральный оркестратор (SAGA coordinator);\nкоординатор публикует команды и слушает события-результаты\nчерез шину событий (Kafka); happy path,\nошибки и компенсации моделируются отдельно
+
+actor "Покупатель" as buyer
+participant "Shopping Cart Service" as ShoppingCartService
+participant "Order Service" as OrderService
+participant "Stock Service" as StockService
+participant "Payment Service" as PaymentService
+participant "Delivery Service" as DeliveryService
+participant "Notification Service" as NotificationService
+actor "Продавец" as seller
+
+buyer -> ShoppingCartService : Открыть корзину и нажать «Оформить заказ»
+ShoppingCartService --> buyer : Состав заказа (товары, количество, цены, итоговая сумма)
+
+buyer -> ShoppingCartService : Подтвердить состав, указать адрес и способ доставки,\n выбрать способ оплаты
+ShoppingCartService ->> OrderService : Событие «OrderRequested»\n(состав, адрес, способ доставки, способ оплаты)
+
+OrderService -> OrderService : Создать заказ в состоянии «Ожидание оплаты»\nи стать координатором саги
+OrderService ->> StockService : Команда «ReserveStock»
+StockService -> StockService : Проверить и зарезервировать товары на складе
+StockService ->> OrderService : Событие «StockReserved»
+
+OrderService ->> PaymentService : Команда «InitiatePayment»
+buyer -> PaymentService : Ввести данные карты и подтвердить платёж
+PaymentService -> PaymentService : Списать средства
+PaymentService ->> OrderService : Событие «PaymentSucceeded»
+
+OrderService -> OrderService : Перевести заказ к этапу подготовки к доставке\n(после получения события «PaymentSucceeded»)
+OrderService ->> DeliveryService : Команда «ScheduleDelivery»\n(адрес, получатель, список товаров)
+DeliveryService -> DeliveryService : Сформировать заявку на доставку\n(статус заказа «Передан в доставку»)
+DeliveryService ->> OrderService : Событие «DeliveryScheduled»
+
+OrderService ->> NotificationService : Команда «NotifySeller» — подготовить товар к отправке
+NotificationService -> seller : Уведомление о подготовке товара к отправке
+seller --> NotificationService : Подтверждение получения уведомления
+
+OrderService ->> NotificationService : Команда «NotifyBuyer» — заказ оформлен
+NotificationService -> buyer : Уведомление об успешном оформлении заказа
+
+@enduml

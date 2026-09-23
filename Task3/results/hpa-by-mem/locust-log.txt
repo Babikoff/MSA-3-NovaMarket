@@ -1,0 +1,15 @@
+kubectl get hpa scaletestapp-hpa-mem -w 
+NAME                   REFERENCE                 TARGETS           MINPODS   MAXPODS   REPLICAS   AGE
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 54%/60%   1         10        1          82s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 66%/60%   1         10        1          96s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 69%/60%   1         10        1          2m36s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 69%/60%   1         10        2          2m51s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 61%/60%   1         10        2          3m38s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 62%/60%   1         10        2          4m23s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 60%/60%   1         10        2          5m23s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 60%/60%   1         10        2          6m23s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 57%/60%   1         10        2          7m23s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 57%/60%   1         10        2          8m23s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 57%/60%   1         10        2          9m23s
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 56%/60%   1         10        2          10m
+scaletestapp-hpa-mem   Deployment/scaletestapp   memory: 56%/60%   1         10        2          11m

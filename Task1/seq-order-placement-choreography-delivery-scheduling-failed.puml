@@ -1,0 +1,46 @@
+@startuml
+title UC-02 · Оформление заказа — SAGA хореография (диаграмма последовательности)
+
+note over ShoppingCartService : Сценарий обработки ошибки регистрации доставки / передачи в службу доставки.
+
+actor "Покупатель" as buyer
+participant "Shopping Cart Service" as ShoppingCartService
+participant "Stock Service" as StockService
+participant "Order Service" as OrderService
+participant "Payment Service" as PaymentService
+participant "Delivery Service" as DeliveryService
+participant "Notification Service" as NotificationService
+
+buyer -> ShoppingCartService : Открыть корзину и нажать «Оформить заказ»
+ShoppingCartService --> buyer : Состав заказа (товары, количество, цены, итоговая сумма)
+
+buyer -> ShoppingCartService : Подтвердить состав, указать адрес и способ доставки,\n выбрать способ оплаты
+
+ShoppingCartService ->> StockService : Событие «CartConfirmed»
+
+StockService -> StockService : Проверить и зарезервировать товары на складе
+StockService ->> OrderService : Событие «StockReserved»
+
+OrderService -> OrderService : Создать заказ в состоянии «Ожидание оплаты»
+OrderService ->> PaymentService : Событие «OrderNeedsPayment»
+
+buyer -> PaymentService : Ввести данные карты и подтвердить платёж
+PaymentService -> PaymentService : Списать средства
+
+PaymentService ->> OrderService : Событие «PaymentSucceeded»
+PaymentService ->> DeliveryService : Событие «PaymentSucceeded»
+
+DeliveryService -> DeliveryService : Не удалось сформировать заявку на доставку
+DeliveryService ->> PaymentService : Событие «DeliverySchedulingFailed»
+PaymentService -> PaymentService : Компенсация: отменить списание средств
+PaymentService ->> OrderService : Событие «PaymentCancelled»
+OrderService -> OrderService : Отменить заказ
+OrderService ->> StockService : Событие «OrderCancelled»
+StockService -> StockService : Компенсация: снять резерв товаров
+StockService ->> ShoppingCartService : Событие «StockReservationCancelled»
+StockService ->> OrderService : Событие «StockReservationCancelled»
+OrderService ->> NotificationService : Событие «OrderCancellationFinished»
+
+NotificationService ->> buyer : Уведомление: статус заказа «Автоотмена» 
+
+@enduml

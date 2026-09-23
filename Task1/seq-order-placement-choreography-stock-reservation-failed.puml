@@ -1,0 +1,23 @@
+@startuml
+title UC-02 · Оформление заказа — сценарий: не удалось забронировать товар 
+
+note over ShoppingCartService : Сценарий обработки ошибки резервирования. Генерация событий компенсации при отмене на данном этапе не требуется.
+
+actor "Покупатель" as buyer
+participant "Shopping Cart Service" as ShoppingCartService
+participant "Stock Service" as StockService
+participant "Notification Service" as NotificationService
+
+buyer -> ShoppingCartService : Открыть корзину и нажать «Оформить заказ»
+ShoppingCartService --> buyer : Состав заказа (товары, количество, цены, итоговая сумма)
+
+buyer -> ShoppingCartService : Подтвердить состав, указать адрес и способ доставки,\n выбрать способ оплаты
+ShoppingCartService ->> StockService : Событие «CartConfirmed»
+
+StockService -> StockService : Ошибка: нет товара
+StockService ->> ShoppingCartService : Событие «StockReservationFailed»
+
+ShoppingCartService ->> NotificationService : Событие «UnableToCreateOrder»
+NotificationService ->> buyer : Уведомление: статус заказа «Автоотмена»
+
+@enduml

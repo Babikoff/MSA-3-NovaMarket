@@ -1,0 +1,62 @@
+@startuml C2_NovaMarket
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Контейнерная диаграмма NovaMarket
+
+'Акторы
+Person(buyer, "Покупатель", "Делает заказ, отменяет заказ")
+Person(seller, "Продавец", "Предоставляет товары")
+
+Container(buyerMobileApp, "Мобильное приложение покупателя", "", "Интерфейс для покупателей")
+Container(sellerMobileApp, "Мобильное приложение продавца", "", "Интерфейс для продавцов")
+
+System_Ext(paymentGateways, "Платёжные шлюзы", "Стандартный провайдеры платежей")
+System_Ext(logisticsCompanies, "Логистические компании", "Службы доставки")
+
+'Граница облачной системы
+System_Boundary(backend_system, "Backend NovaMarket") {
+  Container(apiGateway, "API Gateway", "Nginx", "")
+
+  Container(shoppingCartService, "Shopping Cart Service", "", "")
+  Container(stockService, "Stock Service", "", "")
+  Container(orderService, "Order Service", "", "")
+  Container(paymentService, "Payment Service", "", "")
+  Container(deliveryService, "Delivery Service", "", "")
+  Container(notificationService, "Notification Service", "", "")
+
+  ContainerQueue(kafka, "Event Broker (Bus)", "Kafka", "События EDA/SAGA")
+}
+
+'СВЯЗИ
+'Пользователи -> Приложения
+Rel(buyer, buyerMobileApp, "Выбор товаров, управление заказами")
+Rel(seller, sellerMobileApp, "Предложение товаров, обработка заказов")
+
+'Приложения -> API
+Rel(buyerMobileApp, apiGateway, "REST")
+Rel(sellerMobileApp, apiGateway, "REST")
+
+'API -> микросервисы
+Rel(apiGateway, shoppingCartService, "REST")
+Rel(apiGateway, orderService, "REST")
+Rel(apiGateway, paymentService, "REST")
+Rel(notificationService, apiGateway, "REST")
+
+'Нотификации
+Rel(notificationService, buyerMobileApp, "ServerPush/WebSocket")
+Rel(notificationService, sellerMobileApp, "ServerPush/WebSocket")
+
+'Интеграции
+Rel(paymentService, paymentGateways, "")
+Rel(logisticsCompanies, deliveryService, "")
+Rel(notificationService, logisticsCompanies, "")
+
+'Хореография: все микросервисы обмениваются событиями через Event Bus (Kafka)
+BiRel(shoppingCartService, kafka, "publish:\nCartConfirmed, UnableToCreateOrder\n\nsubscribe:\nStockReservationFailed")
+BiRel(stockService, kafka, "publish:\nStockReserved, StockReservationFailed, StockReservationCancelled\n\nsubscribe:\nCartConfirmed, BuyerCancelledOrder, OrderCancelled")
+BiRel(orderService, kafka, "publish:\nOrderNeedsPayment, OrderCancelled, BuyerCancelledOrder, OrderCancellationFinished\n\nsubscribe:\nStockReserved, PaymentSucceeded, PaymentFailed, PaymentCancelled, StockReservationCancelled, DeliveryCancelled, BuyerCancelledOrder")
+BiRel(paymentService, kafka, "publish:\nPaymentSucceeded, PaymentFailed, PaymentCancelled\n\nsubscribe:\nOrderNeedsPayment, DeliverySchedulingFailed, BuyerCancelledOrder")
+BiRel(deliveryService, kafka, "publish:\nDeliveryScheduled, DeliverySchedulingFailed, DeliveryCancelled\n\nsubscribe:\nPaymentSucceeded, BuyerCancelledOrder")
+BiRel(notificationService, kafka, "subscribe:\nDeliveryScheduled, OrderCancellationFinished, UnableToCreateOrder")
+
+@enduml

@@ -1,0 +1,44 @@
+@startuml
+title UC-02 · Отмена заказа покупателем на любом этапе — SAGA хореография (универсальная компенсация)
+
+note over Bus
+  Универсальный сценарий отмены на любом этапе.
+  При отмене заказа покупателем, событие «BuyerCancelledOrder» публикуется в общий топик Kafka.
+  Каждый сервис подписан на это событие и компенсирует свой выполненный шаг.
+end note
+
+actor "Покупатель" as buyer
+participant "Event Bus (Kafka)" as Bus
+participant "Order Service" as OrderService
+participant "Stock Service" as StockService
+participant "Payment Service" as PaymentService
+participant "Delivery Service" as DeliveryService
+participant "Notification Service" as NotificationService
+
+buyer -> OrderService : Нажать «Отменить заказ» (на любом этапе)
+OrderService ->> Bus : Опубликовать событие «BuyerCancelledOrder»
+
+Bus -> OrderService : Событие «BuyerCancelledOrder»
+OrderService -> OrderService : Перевести заказ в статус «Отменяется»
+OrderService ->> Bus : Опубликовать «OrderCancelled»
+
+Bus -> StockService : Событие «BuyerCancelledOrder»
+StockService -> StockService : если был StockReserved → компенсация: снять резерв
+StockService ->> Bus : Опубликовать «StockReservationCancelled»
+Bus -> OrderService : Событие «StockReservationCancelled»
+
+Bus -> PaymentService : Событие «BuyerCancelledOrder»
+PaymentService -> PaymentService : если был PaymentSucceeded → компенсация: возврат средств
+PaymentService ->> Bus : Опубликовать «PaymentCancelled»
+Bus -> OrderService : Событие «PaymentCancelled»
+
+Bus -> DeliveryService : Событие «BuyerCancelledOrder»
+DeliveryService -> DeliveryService : если был DeliveryScheduled → компенсация: отмена заявки
+DeliveryService ->> Bus : Опубликовать «DeliveryCancelled»
+Bus -> OrderService : Событие «DeliveryCancelled»
+
+OrderService -> OrderService : Все компенсации получены → заказ «Отменён» (завершено)
+OrderService ->> NotificationService : Событие «OrderCancellationFinished»
+NotificationService ->> buyer : Уведомление: заказ отменён
+
+@enduml

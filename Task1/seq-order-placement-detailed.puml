@@ -1,0 +1,33 @@
+@startuml
+title UC-02 · Оформление заказа — диаграмма последовательности
+
+actor "Покупатель" as buyer
+participant "Shopping Cart Service" as ShoppingCartService
+participant "Stock Service" as StockService
+participant "Order Service" as OrderService
+participant "Payment Service" as PaymentService
+participant "Delivery Service" as DeliveryService
+participant "Notification Service" as NotificationService
+actor "Продавец" as seller
+
+buyer -> ShoppingCartService : Открыть корзину и нажать «Оформить заказ»
+ShoppingCartService --> buyer : Состав заказа (товары, количество, цены, итоговая сумма)
+
+buyer -> ShoppingCartService : Подтвердить состав, указать адрес и способ доставки,\n выбрать способ оплаты
+ShoppingCartService -> StockService : Проверить доступность товаров в нужном количестве
+ShoppingCartService -> StockService : Зарезервировать доступные товары на складе
+ShoppingCartService -> OrderService : Команда "Создать заказ"
+OrderService -> OrderService : Создать заказ в состоянии "Ожидание оплаты"
+OrderService -> PaymentService : Перенаправить пользователя на страницу оплаты
+buyer -> PaymentService : Ввести данные карты и подтвердить платёж
+
+PaymentService --> OrderService : Уведомление об успешном списании средств
+OrderService -> OrderService : Перевести заказ к этапу подготовки к доставке
+OrderService -> DeliveryService : Заявка на доставку (адрес, получатель, список товаров)
+DeliveryService -> NotificationService : Подтверждение приёма заявки
+NotificationService -> seller : Уведомление о подготовке товара к отправке
+seller --> OrderService : Подтверждение получения уведомления
+OrderService -> NotificationService : Уведомление об успешном оформлении заказа
+NotificationService -> buyer : Уведомление об успешном оформлении заказа
+
+@enduml
